@@ -4,7 +4,6 @@ import com.linkedIn.LinkedIn.App.common.exceptions.BaseException;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
 import graphql.schema.DataFetchingEnvironment;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.stereotype.Component;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class GlobalExceptionHandler extends DataFetcherExceptionResolverAdapter {
 
     @Override

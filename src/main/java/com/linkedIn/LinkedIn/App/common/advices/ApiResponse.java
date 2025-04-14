@@ -1,15 +1,10 @@
 package com.linkedIn.LinkedIn.App.common.advices;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class ApiResponse<T>{
 
     private boolean success;
@@ -22,6 +17,15 @@ public class ApiResponse<T>{
 
     @JsonFormat(pattern = "hh-mm-ss dd-MM-yyyy")
     private LocalDateTime timestamp;
+
+    public ApiResponse(boolean success, String message, T data, ApiError error, LocalDateTime timestamp) {
+
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.error = error;
+        this.timestamp = timestamp;
+    }
 
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(true, message, data, null, LocalDateTime.now());
