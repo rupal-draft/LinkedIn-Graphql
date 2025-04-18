@@ -1,10 +1,7 @@
 package com.linkedIn.LinkedIn.App.auth.dto.records;
 
 import com.linkedIn.LinkedIn.App.user.entity.enums.Roles;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 public record SignupInput(
         @NotBlank(message = "Name is required")
@@ -40,7 +37,7 @@ public record SignupInput(
         )
         String website,
 
-        @NotBlank(message = "Role is required")
+        @NotNull(message = "Role is required")
         Roles role
 ) {}
 
