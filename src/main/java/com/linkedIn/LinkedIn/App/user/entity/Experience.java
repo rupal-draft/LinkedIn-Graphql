@@ -1,5 +1,6 @@
 package com.linkedIn.LinkedIn.App.user.entity;
 
+import com.linkedIn.LinkedIn.App.common.entity.Auditable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-public class Experience {
+public class Experience extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
