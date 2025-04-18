@@ -1,0 +1,79 @@
+type Mutation {
+    signup(input: SignupInput!): SignupResponse!
+    login(input: LoginInput!): LoginResponse!
+    changePassword(input: ChangePasswordInput!): Response!
+    refreshToken: LoginResponse!
+}
+
+type Query {
+    _empty: String
+}
+
+input SignupInput {
+    name: String!
+    email: String!
+    password: String!
+    headline: String!
+    about: String!
+    location: String!
+    website: String!
+    phone: String!
+    role: Roles!
+}
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+input ChangePasswordInput {
+    email: String!
+    oldPassword: String!
+    newPassword: String!
+}
+
+type SignupResponse {
+    message: String!
+    success: Boolean!
+    user: User!
+}
+
+type LoginResponse {
+    message: String!
+    success: Boolean!
+    token: String!
+}
+
+type Response {
+    message: String!
+    success: Boolean!
+}
+
+type User {
+    id: ID!
+    role: Roles!
+    email: String!
+}
+
+enum Roles {
+    ADMIN,
+    HR,
+    RECRUITER,
+    DEVELOPER,
+    DESIGNER,
+    MANAGER,
+    TEAM_LEAD,
+    PRODUCT_MANAGER,
+    PROJECT_MANAGER,
+    DATA_SCIENTIST,
+    DATA_ANALYST,
+    QA_ENGINEER,
+    DEVOPS_ENGINEER,
+    MARKETER,
+    SALES,
+    FINANCE,
+    CUSTOMER_SUPPORT,
+    CONTENT_WRITER,
+    INTERN,
+    FREELANCER
+}
