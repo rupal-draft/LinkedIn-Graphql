@@ -1,0 +1,87 @@
+extend type Mutation {
+    createPost(postInput: PostInput): CreatedPostResponse
+    updatePost(id: ID!, content: String!): Response
+    deletePost(id: ID!): Response
+    changeVisibility(id: ID!, visibility: String!): Response
+}
+
+extend type Query {
+    getPostsByUser(userId: ID!): MultiplePostResponse!
+    getMyPosts: MultiplePostResponse!
+    getPostsByCategory(category: String!): MultiplePostResponse!
+    getAllPosts: MultiplePostResponse!
+}
+
+type PostResponse {
+    id: ID!
+    user: User!
+}
+
+type CreatedPostResponse {
+    message: String!
+    success: Boolean!
+    post: PostResponse
+}
+
+input PostInput {
+    content: String!
+    category: String!
+    imageUrl: String
+}
+
+type DetailedPostResponse {
+    id: ID!
+    content: String!
+    category: Category!
+    imageUrl: String
+    user: User!
+    likesCount: Int!
+    comments: [CommentResponse!]!
+    createdAt: String!
+}
+
+type CommentResponse {
+    id: ID!
+    content: String!
+    user: User!
+}
+
+type MultiplePostResponse {
+    message: String!
+    success: Boolean!
+    totalPosts: Int!
+    posts: [DetailedPostResponse!]
+}
+
+type SinglePostResponse {
+    message: String!
+    success: Boolean!
+    post: DetailedPostResponse
+}
+
+enum Category {
+    JOB,
+    EDUCATION,
+    TRAINING,
+    TECHNOLOGY,
+    BUSINESS,
+    HEALTHCARE,
+    FINANCE,
+    MARKETING,
+    DESIGN,
+    DEVELOPMENT,
+    DATA_SCIENCE,
+    ENGINEERING,
+    MANAGEMENT,
+    SALES,
+    CUSTOMER_SERVICE,
+    HUMAN_RESOURCES,
+    LEGAL,
+    MEDIA,
+    WRITING,
+    ENTREPRENEURSHIP,
+    PRODUCTIVITY,
+    LIFESTYLE,
+    LANGUAGES,
+    PERSONAL_DEVELOPMENT
+}
