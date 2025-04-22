@@ -85,6 +85,8 @@ public class CommentServiceImpl implements CommentService {
                 throw new IllegalArgumentException("Comment does not belong to the specified post");
             }
 
+            post.getComments().remove(comment);
+
             commentRepository.delete(comment);
             log.info("Comment with ID: {} deleted successfully from post with ID: {}", commentId, postId);
 
