@@ -7,14 +7,32 @@ import com.linkedIn.LinkedIn.App.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "posts",indexes = {
         @Index(columnList = "user_id", name = "post_user_id_idx"),
         @Index(columnList = "category", name = "post_category_idx")
 })
+@NamedEntityGraph(
+        name = "Post.withLikesAndCommentsAndUser",
+        attributeNodes = {
+                @NamedAttributeNode("likes"),
+                @NamedAttributeNode("comments"),
+                @NamedAttributeNode(value = "user", subgraph = "userDetails")
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "userDetails",
+                        attributeNodes = {
+                                @NamedAttributeNode("name"),
+                                @NamedAttributeNode("role"),
+                                @NamedAttributeNode("profilePicture")
+                        }
+                )
+        }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -46,9 +64,12 @@ public class Post extends Auditable {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Like> likes = new ArrayList<>();;
+    private Set<Like> likes = new HashSet<>();;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Comment> comments = new ArrayList<>();;
+    private Set<Comment> comments = new HashSet<>();;
+
+    @Column(name = "deleted")
+    private boolean deleted = false;
 }

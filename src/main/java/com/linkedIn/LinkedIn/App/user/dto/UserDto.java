@@ -15,5 +15,6 @@ public class UserDto {
     private Long id;
     private String email;
     private Roles role;
-
+    private String name;
+    private String profilePicture;
 }

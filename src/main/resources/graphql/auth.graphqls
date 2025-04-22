@@ -1,12 +1,8 @@
-type Mutation {
+extend type Mutation {
     signup(input: SignupInput!): SignupResponse!
     login(input: LoginInput!): LoginResponse!
     changePassword(input: ChangePasswordInput!): Response!
     refreshToken: LoginResponse!
-}
-
-type Query {
-    _empty: String
 }
 
 input SignupInput {
@@ -44,15 +40,12 @@ type LoginResponse {
     token: String!
 }
 
-type Response {
-    message: String!
-    success: Boolean!
-}
-
 type User {
     id: ID!
     role: Roles!
     email: String!
+    name: String!
+    profilePicture: String
 }
 
 enum Roles {
