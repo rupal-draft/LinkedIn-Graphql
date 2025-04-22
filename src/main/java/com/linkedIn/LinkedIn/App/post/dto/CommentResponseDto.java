@@ -13,5 +13,5 @@ public class CommentResponseDto {
     private String message;
     private boolean success;
     private int commentsCount;
-    private Set<CommentDto> comment;
+    private Set<CommentDto> comments;
 }

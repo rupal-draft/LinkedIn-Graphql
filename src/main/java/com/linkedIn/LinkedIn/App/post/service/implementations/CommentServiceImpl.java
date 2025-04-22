@@ -148,6 +148,7 @@ public class CommentServiceImpl implements CommentService {
                     .collect(Collectors.toSet());
 
             log.info("Successfully fetched {} comments for post {}", commentDtos.size(), postId);
+            log.info("Comments: {}", commentDtos);
             return commentDtos;
 
         } catch (Exception e) {
