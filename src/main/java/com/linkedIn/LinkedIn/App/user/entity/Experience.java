@@ -28,8 +28,8 @@ public class Experience extends Auditable {
     @NotBlank(message = "Company is required")
     private String company;
 
-    @NotBlank(message = "Title is required")
-    private String title;
+    @NotBlank(message = "Position is required")
+    private String position;
 
     @NotBlank(message = "Location is required")
     private String location;
