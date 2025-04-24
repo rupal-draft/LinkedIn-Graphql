@@ -1,6 +1,5 @@
 package com.linkedIn.LinkedIn.App.user.dto;
 
-import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.entity.enums.Roles;
 import lombok.AllArgsConstructor;
 import lombok.Data;

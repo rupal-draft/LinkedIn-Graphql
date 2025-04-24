@@ -93,7 +93,9 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Start date cannot be after end date.");
             }
             log.info("Adding education for user {}", SecurityUtils.getLoggedInUser().getEmail());
-            User user = SecurityUtils.getLoggedInUser();
+            String email = SecurityUtils.getLoggedInUser().getEmail();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
             Education education = modelMapper.map(input, Education.class);
             education.setUser(user);
             user.getEducationList().add(education);
@@ -116,7 +118,9 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Start date cannot be after end date.");
             }
             log.info("Adding experience for user {}", SecurityUtils.getLoggedInUser().getEmail());
-            User user = SecurityUtils.getLoggedInUser();
+            String email = SecurityUtils.getLoggedInUser().getEmail();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
             Experience experience = modelMapper.map(input, Experience.class);
             experience.setUser(user);
             user.getExperienceList().add(experience);
@@ -219,6 +223,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     @Cacheable(value = "user", key = "#userId")
     public DetailedUserDto getDetailedUser(Long userId) {
         try {
@@ -236,6 +241,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public DetailedUserDto getMyProfile() {
         try {
             String email = SecurityUtils.getLoggedInUser().getEmail();
