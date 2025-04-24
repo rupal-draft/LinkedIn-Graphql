@@ -12,6 +12,6 @@ import java.util.List;
 @Repository
 public interface ExperienceRepository extends JpaRepository<Experience, Long> {
 
-    @Query("SELECT DISTINCT e.user FROM Experience e WHERE e.company = :company OR e.yearsOfExperience >= :years")
-    List<User> findUsersByCompanyOrExperience(@Param("company") String company, @Param("years") double years);
+    @Query("SELECT DISTINCT e.user FROM Experience e WHERE e.position = :position OR e.yearsOfExperience >= :years")
+    List<User> findUsersByPositionOrExperience(@Param("position") String position, @Param("years") double years);
 }

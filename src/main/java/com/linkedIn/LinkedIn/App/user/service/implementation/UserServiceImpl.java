@@ -184,10 +184,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(value = "usersByCompanyOrExperience", key = "#company, #yearsOfExperience")
-    public List<UserDto> findUsersByCompanyOrExperience(String company, double yearsOfExperience) {
+    @Cacheable(value = "usersByCompanyOrExperience", key = "#company + '-' + #yearsOfExperience")
+    public List<UserDto> findUsersByPositionOrExperience(String position, double yearsOfExperience) {
         return experienceRepository
-                .findUsersByCompanyOrExperience(company, yearsOfExperience)
+                .findUsersByPositionOrExperience(position, yearsOfExperience)
                 .stream()
                 .map(user -> {
             try {
@@ -200,7 +200,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(value = "usersByEducationFieldOrDegree", key = "#field, #degree")
+    @Cacheable(value = "usersByEducationFieldOrDegree", key = "#field + '-' + #degree")
     public List<UserDto> findUsersByEducationFieldOrDegree(String field, String degree) {
         List<User> users = educationRepository.findUsersByEducationFieldOrDegree(field, degree);
         if (users != null && !users.isEmpty()) {
@@ -238,11 +238,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public DetailedUserDto getMyProfile() {
         try {
-            User user = SecurityUtils.getLoggedInUser();
-            if (user != null) {
-                return modelMapper.map(user, DetailedUserDto.class);
-            }
-            return null;
+            String email = SecurityUtils.getLoggedInUser().getEmail();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            return modelMapper.map(user, DetailedUserDto.class);
         } catch (MappingException e) {
             log.error(e.getLocalizedMessage());
             throw new RuntimeException(e.getMessage());

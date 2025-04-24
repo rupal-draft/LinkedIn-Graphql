@@ -24,7 +24,7 @@ public interface UserService extends UserDetailsService {
 
     void deleteEducation(Long educationId);
 
-    List<UserDto> findUsersByCompanyOrExperience(String company, double yearsOfExperience);
+    List<UserDto> findUsersByPositionOrExperience(String company, double yearsOfExperience);
 
     List<UserDto> findUsersByEducationFieldOrDegree(String field, String degree);
 

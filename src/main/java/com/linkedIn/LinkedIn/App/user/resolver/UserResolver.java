@@ -56,8 +56,8 @@ public class UserResolver {
     }
 
     @QueryMapping
-    public ListUserResponseDto filterUsersExperience(@Argument("company") String company, @Argument("years") double years) {
-        List<UserDto> users = userService.findUsersByCompanyOrExperience(company, years);
+    public ListUserResponseDto filterUsersExperience(@Argument("position") String position, @Argument("years") double years) {
+        List<UserDto> users = userService.findUsersByPositionOrExperience(position, years);
         return new ListUserResponseDto("Users filtered successfully based on experience", true,users.size(), users);
     }
 
@@ -74,6 +74,6 @@ public class UserResolver {
 
     @QueryMapping
     public DetailUserResponse getMyProfile() {
-        return new DetailUserResponse("User fetched successfully", true, userService.getMyProfile());
+        return new DetailUserResponse("Your profile fetched successfully", true, userService.getMyProfile());
     }
 }

@@ -1,0 +1,100 @@
+extend type Mutation {
+    updateProfile(input: UserUpdateInput!): Response
+    addExperience(input: ExperienceInput!): Response
+    addEducation(input: EducationInput!): Response
+    deleteExperience(experienceId: ID!): Response
+    deleteEducation(educationId: ID!): Response
+}
+
+extend type Query {
+    filterUsersExperience(position: String, years: Float): ListUserResponseDto
+    filterUsersEducation(field: String, degree: String): ListUserResponseDto
+    getUserById(id: ID!): DetailUserResponse
+    getMyProfile: DetailUserResponse
+}
+
+
+input UserUpdateInput {
+    name: String
+    password: String
+    headline: String
+    about: String
+    profilePicture: String
+    coverPicture: String
+    location: String
+    website: String
+    phone: String
+    currentPosition: String
+    role: Roles
+}
+
+input ExperienceInput {
+    company: String!
+    position: String!
+    location: String!
+    fromDate: String!
+    toDate: String!
+    currentlyWorking: Boolean!
+    yearsOfExperience: Float!
+    description: String!
+}
+
+input EducationInput {
+    school: String!
+    degree: String!
+    field: String!
+    startDate: String!
+    endDate: String!
+    grade: String!
+    description: String!
+}
+
+type ExperienceDto {
+    company: String
+    position: String
+    location: String
+    fromDate: String
+    toDate: String
+    currentlyWorking: Boolean
+    yearsOfExperience: Float
+    description: String
+}
+
+type EducationDto {
+    school: String
+    degree: String
+    field: String
+    startDate: String
+    endDate: String
+    grade: String
+    description: String
+}
+
+type DetailedUserDto {
+    name: String
+    email: String
+    headline: String
+    about: String
+    profilePicture: String
+    coverPicture: String
+    location: String
+    website: String
+    phone: String
+    currentPosition: String
+    role: Roles
+    experienceList: [ExperienceDto]
+    educationList: [EducationDto]
+}
+
+type DetailUserResponse {
+    message: String
+    success: Boolean
+    user: DetailedUserDto
+}
+
+type ListUserResponseDto {
+    message: String
+    success: Boolean
+    totalUsers: Int
+    users: [User!]!
+}

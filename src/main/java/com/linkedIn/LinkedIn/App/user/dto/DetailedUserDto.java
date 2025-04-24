@@ -1,15 +1,11 @@
 package com.linkedIn.LinkedIn.App.user.dto;
 
-import com.linkedIn.LinkedIn.App.user.entity.Education;
-import com.linkedIn.LinkedIn.App.user.entity.Experience;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.entity.enums.Roles;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -39,9 +35,9 @@ public class DetailedUserDto {
 
     private Roles role;
 
-    private Set<User> connections;
+    private Set<UserDto> connections;
 
-    private List<Experience> experienceList;
+    private List<ExperienceDto> experienceList;
 
-    private List<Education> educationList;
+    private List<EducationDto> educationList;
 }
