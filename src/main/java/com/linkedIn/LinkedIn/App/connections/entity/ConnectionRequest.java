@@ -1,5 +1,6 @@
 package com.linkedIn.LinkedIn.App.connections.entity;
 
+import com.linkedIn.LinkedIn.App.common.entity.Auditable;
 import com.linkedIn.LinkedIn.App.connections.entity.enums.RequestStatus;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import jakarta.persistence.*;
@@ -18,7 +19,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ConnectionRequest {
+public class ConnectionRequest extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
