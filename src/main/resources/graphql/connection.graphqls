@@ -1,0 +1,45 @@
+extend type Mutation {
+    sendConnectionRequest(receiverId: ID!): Response
+    acceptConnectionRequest(requestId: ID!): Response
+    rejectConnectionRequest(requestId: ID!): Response
+    removeConnection(connectionId: ID!): Response
+}
+
+extend type Query {
+    getMyConnections: ConnectionsResponse
+    getPendingRequests: ConnectionRequestsResponse
+    getSentRequests: ConnectionRequestsResponse
+}
+
+type ConnectionsResponse {
+    message: String!
+    success: Boolean!
+    connectionsCount: Int!
+    connections: [User!]!
+}
+
+type ConnectionRequestsResponse {
+    message: String!
+    success: Boolean!
+    totalRequests: Int!
+    requests: [ConnectionRequestDto!]!
+}
+
+type ConnectionRequestDto {
+    id: ID!
+    senderId: ID!
+    senderName: String!
+    senderEmail: String!
+    receiverId: ID!
+    receiverName: String!
+    receiverEmail: String!
+    status: RequestStatus!
+    createdAt: String!
+}
+
+
+enum RequestStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
