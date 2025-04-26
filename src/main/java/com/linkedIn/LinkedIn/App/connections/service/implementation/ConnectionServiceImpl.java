@@ -39,7 +39,9 @@ public class ConnectionServiceImpl implements ConnectionService {
     public void sendConnectionRequest(Long receiverId) {
         try {
             log.info("Sending connection request to user {}", receiverId);
-            User sender = SecurityUtils.getLoggedInUser();
+            User currentUser = SecurityUtils.getLoggedInUser();
+            User sender = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
             User receiver = userRepository.findById(receiverId)
                     .orElseThrow(() -> new ResourceNotFoundException("Receiver not found"));
 
@@ -85,7 +87,9 @@ public class ConnectionServiceImpl implements ConnectionService {
     @CacheEvict(value = "connections", key = "#requestId")
     public void acceptConnectionRequest(Long requestId) {
         try {
-            User receiver = SecurityUtils.getLoggedInUser();
+            User currentUser = SecurityUtils.getLoggedInUser();
+            User receiver = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Receiver not found"));
             ConnectionRequest request = connectionRequestRepository.findById(requestId)
                     .orElseThrow(() -> new ResourceNotFoundException("Connection request not found"));
 
@@ -132,8 +136,8 @@ public class ConnectionServiceImpl implements ConnectionService {
                 throw new IllegalStateException("Only pending requests can be rejected.");
             }
 
-            connectionRequestRepository.updateConnectionRequestStatus(requestId, RequestStatus.REJECTED);
-            log.info("Successfully rejected connection request with id {}", requestId);
+            connectionRequestRepository.deleteById(requestId);
+            log.info("Successfully deleted connection request with id {}", requestId);
 
         } catch (ResourceNotFoundException | IllegalStateException e) {
             log.error("Error rejecting connection request with id {}: {}", requestId, e.getMessage());
@@ -151,7 +155,11 @@ public class ConnectionServiceImpl implements ConnectionService {
         log.info("Removing connection with user id {}", connectionId);
 
         try {
-            User currentUser = SecurityUtils.getLoggedInUser();
+            Long currentUserId = SecurityUtils.getLoggedInUser().getId();
+            User currentUser = userRepository.findById(currentUserId).orElseThrow(() -> {
+                log.error("User with id {} not found", currentUserId);
+                return new ResourceNotFoundException("User not found");
+            });
             User targetUser = userRepository.findById(connectionId)
                     .orElseThrow(() -> {
                         log.error("User with id {} not found", connectionId);
@@ -181,7 +189,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.util.SecurityUtils).getLoggedInUser().getId()")
+    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()")
     public List<UserDto> getMyConnections() {
         User currentUser = SecurityUtils.getLoggedInUser();
         log.info("Fetching connections for user {}", currentUser.getEmail());
@@ -207,7 +215,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.util.SecurityUtils).getLoggedInUser().getId()")
+    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()")
     public List<ConnectionRequestDto> getPendingRequests() {
         User currentUser = SecurityUtils.getLoggedInUser();
         log.info("Fetching pending connection requests received by user {}", currentUser.getEmail());
@@ -228,7 +236,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.util.SecurityUtils).getLoggedInUser().getId()")
+    @Cacheable(value = "connections", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()")
     public List<ConnectionRequestDto> getSentRequests() {
         User currentUser = SecurityUtils.getLoggedInUser();
         log.info("Fetching pending connection requests sent by user {}", currentUser.getEmail());
