@@ -1,5 +1,6 @@
 package com.linkedIn.LinkedIn.App.job.entity;
 
+import com.linkedIn.LinkedIn.App.common.entity.Auditable;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobStatus;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobType;
 import com.linkedIn.LinkedIn.App.user.entity.User;
@@ -23,7 +24,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Job {
+public class Job extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

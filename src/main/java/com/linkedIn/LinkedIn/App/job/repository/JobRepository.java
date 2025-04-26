@@ -20,6 +20,8 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     List<Job> findByLocationIgnoreCaseAndStatus(String location, JobStatus status);
 
+    List<Job> findByTitleContainingIgnoreCaseAndLocationIgnoreCase(String title, String location);
+
     List<Job> findByTitleContainingIgnoreCaseAndStatus(String title, JobStatus status);
 
     List<Job> findByTitleContainingIgnoreCaseAndLocationIgnoreCaseAndStatus(
