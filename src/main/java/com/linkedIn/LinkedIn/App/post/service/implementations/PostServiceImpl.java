@@ -140,7 +140,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "posts")
+    @Cacheable(value = "posts", key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()")
     public List<DetailedPostResponse> getMyPosts() {
         log.info("Getting my posts");
         User user = SecurityUtils.getLoggedInUser();

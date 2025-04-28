@@ -20,8 +20,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.linkedIn.LinkedIn.App.common.utils.UtilityClass.getNullPropertyNames;
 
 @Service
 @RequiredArgsConstructor
@@ -57,25 +61,25 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user profile");
 
         try {
-            User user = SecurityUtils.getLoggedInUser();
+            User existingUser = userRepository
+                    .findById(SecurityUtils
+                            .getLoggedInUser()
+                            .getId())
+                    .orElseThrow(()-> new AuthenticationCredentialsNotFoundException("User not found!"));
 
-            Optional.ofNullable(input.name()).ifPresent(user::setName);
-            Optional.ofNullable(input.currentPosition()).ifPresent(user::setCurrentPosition);
-            Optional.ofNullable(input.location()).ifPresent(user::setLocation);
-            Optional.ofNullable(input.profilePicture()).ifPresent(user::setProfilePicture);
-            Optional.ofNullable(input.coverPicture()).ifPresent(user::setCoverPicture);
-            Optional.ofNullable(input.about()).ifPresent(user::setAbout);
-            Optional.ofNullable(input.headline()).ifPresent(user::setHeadline);
-            Optional.ofNullable(input.website()).ifPresent(user::setWebsite);
-            Optional.ofNullable(input.phone()).ifPresent(user::setPhone);
-            Optional.ofNullable(input.role()).ifPresent(user::setRole);
-            Optional.ofNullable(input.password())
-                    .map(passwordEncoder::encode)
-                    .ifPresent(user::setPassword);
+            User userUpdateEntity = modelMapper.map(input, User.class);
+            if (input.password() != null) {
+                userUpdateEntity.setPassword(passwordEncoder.encode(input.password()));
+            }
 
-            userRepository.save(user);
-            log.info("User profile updated successfully for user ID: {}", user.getId());
+            BeanUtils.copyProperties(userUpdateEntity, existingUser, getNullPropertyNames(userUpdateEntity));
 
+            userRepository.save(existingUser);
+            log.info("User profile updated successfully for user ID: {}", existingUser.getId());
+
+        } catch (ResourceNotFoundException e) {
+            log.error("Error occurred while updating job: {}", e.getMessage(), e);
+            throw e;
         } catch (DataIntegrityViolationException ex) {
             log.error("Data integrity violation during profile update: {}", ex.getMessage(), ex);
             throw new RuntimeException("Email or phone number might already be in use.");

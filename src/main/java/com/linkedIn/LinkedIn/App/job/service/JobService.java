@@ -3,6 +3,9 @@ package com.linkedIn.LinkedIn.App.job.service;
 import com.linkedIn.LinkedIn.App.job.dto.JobApplicationDto;
 import com.linkedIn.LinkedIn.App.job.dto.JobDto;
 import com.linkedIn.LinkedIn.App.job.dto.records.JobInput;
+import com.linkedIn.LinkedIn.App.job.dto.records.JobUpdate;
+import com.linkedIn.LinkedIn.App.job.entity.Job;
+import com.linkedIn.LinkedIn.App.job.entity.JobApplication;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import jakarta.validation.Valid;
 
@@ -10,11 +13,11 @@ import java.util.List;
 
 public interface JobService {
 
-    void createJob(@Valid JobInput jobInput);
+    JobDto createJob(@Valid JobInput jobInput);
 
-    void updateJob(@Valid JobInput jobInput);
+    void updateJob(Long jobId, @Valid JobUpdate jobUpdate);
 
-    void deleteJob(Long jobId);
+    boolean deleteJob(Long jobId);
 
     List<JobDto> getAllJobs();
 
@@ -34,7 +37,9 @@ public interface JobService {
 
     JobDto getJobById(Long jobId);
 
-    List<JobDto> getJobsByPostedBy(User postedBy);
+    List<JobDto> getJobsByPostedBy(Long postedBy);
+
+    List<JobDto> mapToJobDto(List<Job> jobs);
 
     void applyForJob(Long jobId);
 
@@ -45,6 +50,12 @@ public interface JobService {
     void unsaveJob(Long jobId);
 
     List<JobApplicationDto> getMyApplications();
+
+    List<JobApplication> getApplicationsOfJob(Long jobId);
+
+    List<JobApplication> getApplicationsOfJobByStatus(Long jobId, String status);
+
+    List<JobApplicationDto> mapToJobApplicationDto(List<JobApplication> jobApplications);
 
     List<JobDto> getMySavedJobs();
 
