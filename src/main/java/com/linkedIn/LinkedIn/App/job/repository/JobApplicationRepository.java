@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
+    Optional<JobApplication> findByJobAndUser(Job job, User user);
+
     List<JobApplication> findByJob(Job job);
 
     List<JobApplication> findByUser(User user);

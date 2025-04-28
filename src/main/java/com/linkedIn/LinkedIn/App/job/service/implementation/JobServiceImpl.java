@@ -10,6 +10,7 @@ import com.linkedIn.LinkedIn.App.job.dto.records.JobInput;
 import com.linkedIn.LinkedIn.App.job.dto.records.JobUpdate;
 import com.linkedIn.LinkedIn.App.job.entity.Job;
 import com.linkedIn.LinkedIn.App.job.entity.JobApplication;
+import com.linkedIn.LinkedIn.App.job.entity.SavedJob;
 import com.linkedIn.LinkedIn.App.job.entity.enums.ApplicationStatus;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobStatus;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobType;
@@ -17,6 +18,7 @@ import com.linkedIn.LinkedIn.App.job.repository.JobApplicationRepository;
 import com.linkedIn.LinkedIn.App.job.repository.JobRepository;
 import com.linkedIn.LinkedIn.App.job.repository.SavedJobRepository;
 import com.linkedIn.LinkedIn.App.job.service.JobService;
+import com.linkedIn.LinkedIn.App.user.entity.Experience;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +32,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.linkedIn.LinkedIn.App.common.utils.UtilityClass.getNullPropertyNames;
 
@@ -374,23 +376,121 @@ public class JobServiceImpl implements JobService {
 
 
     @Override
-    public void applyForJob(Long jobId) {
+    @Transactional
+    @CacheEvict(value = "applications", allEntries = true)
+    public void applyForJob(Long jobId, String resumeUrl) {
+        User currentUser = SecurityUtils.getLoggedInUser();
+        log.info("User [{}] attempting to apply for job [{}]", currentUser.getId(), jobId);
 
+        try {
+            Job job = jobRepository.findById(jobId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+            boolean alreadyApplied = jobApplicationRepository.findByJobAndUser(job, currentUser).isPresent();
+            if (alreadyApplied) {
+                log.warn("User [{}] already applied for job [{}]", currentUser.getId(), jobId);
+                throw new BadRequestException("You have already applied for this job.");
+            }
+
+            JobApplication application = JobApplication.builder()
+                    .job(job)
+                    .user(currentUser)
+                    .resumeUrl(resumeUrl)
+                    .applicationStatus(ApplicationStatus.APPLIED)
+                    .build();
+
+            jobApplicationRepository.save(application);
+            log.info("User [{}] successfully applied for job [{}]", currentUser.getId(), jobId);
+        } catch (ResourceNotFoundException | BadRequestException ex) {
+            log.error("Known error during job application: {}", ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during job application: {}", ex.getMessage(), ex);
+            throw new RuntimeException("Failed to apply for the job. Please try again later.");
+        }
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "applications", allEntries = true)
     public void withdrawApplication(Long jobId) {
+        User currentUser = SecurityUtils.getLoggedInUser();
+        log.info("User [{}] attempting to withdraw application for job [{}]", currentUser.getId(), jobId);
 
+        try {
+            Job job = jobRepository.findById(jobId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+            JobApplication application = jobApplicationRepository.findByJobAndUser(job, currentUser)
+                    .orElseThrow(() -> new ResourceNotFoundException("You have not applied for this job."));
+
+            jobApplicationRepository.delete(application);
+            log.info("User [{}] successfully withdrew application for job [{}]", currentUser.getId(), jobId);
+        } catch (ResourceNotFoundException ex) {
+            log.error("Known error during withdrawal: {}", ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during withdrawal: {}", ex.getMessage(), ex);
+            throw new RuntimeException("Failed to withdraw application. Please try again later.");
+        }
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = {"savedJobs"}, allEntries = true)
     public void saveJob(Long jobId) {
+        User currentUser = SecurityUtils.getLoggedInUser();
+        log.info("User [{}] attempting to save job [{}]", currentUser.getId(), jobId);
 
+        try {
+            Job job = jobRepository.findById(jobId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+            boolean alreadySaved = savedJobRepository.findByJobAndUser(job, currentUser).isPresent();
+            if (alreadySaved) {
+                log.warn("User [{}] already saved job [{}]", currentUser.getId(), jobId);
+                throw new BadRequestException("You have already saved this job.");
+            }
+
+            SavedJob savedJob = SavedJob.builder()
+                    .user(currentUser)
+                    .job(job)
+                    .build();
+
+            savedJobRepository.save(savedJob);
+            log.info("User [{}] successfully saved job [{}]", currentUser.getId(), jobId);
+        } catch (ResourceNotFoundException | BadRequestException ex) {
+            log.error("Known error during saving job: {}", ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during saving job: {}", ex.getMessage(), ex);
+            throw new RuntimeException("Failed to save job. Please try again later.");
+        }
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = {"savedJobs"}, allEntries = true)
     public void unsaveJob(Long jobId) {
+        User currentUser = SecurityUtils.getLoggedInUser();
+        log.info("User [{}] attempting to unsave job [{}]", currentUser.getId(), jobId);
 
+        try {
+            Job job = jobRepository.findById(jobId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+            SavedJob savedJob = savedJobRepository.findByJobAndUser(job, currentUser)
+                    .orElseThrow(() -> new ResourceNotFoundException("This job is not saved."));
+
+            savedJobRepository.delete(savedJob);
+            log.info("User [{}] successfully unsaved job [{}]", currentUser.getId(), jobId);
+        } catch (ResourceNotFoundException ex) {
+            log.error("Known error during unsaving job: {}", ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during unsaving job: {}", ex.getMessage(), ex);
+            throw new RuntimeException("Failed to unsave job. Please try again later.");
+        }
     }
 
     @Override
@@ -480,7 +580,116 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobApplicationDto> mapToJobApplicationDto(List<JobApplication> jobApplications) {
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "savedJobs",
+            key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()"
+    )
+    public List<JobDto> getMySavedJobs() {
+        log.info("Fetching saved jobs for current user.");
+
+        Long userId = SecurityUtils.getLoggedInUser().getId();
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("User not found with id: {}", userId);
+                    return new ResourceNotFoundException("User not found with id: " + userId);
+                });
+
+        log.debug("Fetched current user: {}", currentUser.getEmail());
+
+        Set<SavedJob> savedJobs = Optional.ofNullable(savedJobRepository.findByUser(currentUser))
+                .orElse(Collections.emptySet());
+
+        if (savedJobs.isEmpty()) {
+            log.warn("No saved jobs found for user: {}", currentUser.getEmail());
+            return Collections.emptyList();
+        }
+
+        List<JobDto> savedJobDtos = savedJobs.stream()
+                .map(savedJob -> modelMapper.map(savedJob.getJob(), JobDto.class))
+                .collect(Collectors.toList());
+
+        log.info("Found {} saved jobs for user {}", savedJobDtos.size(), currentUser.getEmail());
+        return savedJobDtos;
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(
+            value = "recommendedJobs",
+            key = "#root.methodName + '_' + T(com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils).getLoggedInUser().getId()"
+    )
+    public List<JobDto> recommendJobs() {
+        log.info("Starting job recommendation process.");
+
+        Long userId = SecurityUtils.getLoggedInUser().getId();
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("User not found with id: {}", userId);
+                    return new ResourceNotFoundException("User not found with id: " + userId);
+                });
+
+        log.debug("Fetched current user: {}", currentUser.getEmail());
+
+        Set<String> userCompanies = Optional.ofNullable(currentUser.getExperienceList())
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Experience::getCompany)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        String userLocation = Optional.ofNullable(currentUser.getLocation()).orElse("");
+
+        Set<Long> excludedJobIds = getExcludedJobIds(currentUser);
+
+        List<Job> recommendedJobs = jobRepository.findRecommendedJobs(
+                userCompanies.isEmpty() ? Set.of("") : userCompanies,
+                userLocation,
+                excludedJobIds.isEmpty() ? Set.of(-1L) : excludedJobIds
+        );
+
+        if (recommendedJobs.isEmpty()) {
+            log.warn("No recommended jobs found for user: {}", currentUser.getEmail());
+            return Collections.emptyList();
+        }
+
+        List<JobDto> jobDtos = recommendedJobs.stream()
+                .map(job -> modelMapper.map(job, JobDto.class))
+                .collect(Collectors.toList());
+
+        log.info("Recommended {} jobs for user {}", jobDtos.size(), currentUser.getEmail());
+        return jobDtos;
+    }
+
+
+    private Set<Long> getExcludedJobIds(User user) {
+        Set<Long> appliedJobIds = Optional.ofNullable(jobApplicationRepository.findByUser(user))
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(jobApplication -> jobApplication.getJob().getId())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> savedJobIds = Optional.ofNullable(savedJobRepository.findByUser(user))
+                .orElse(Collections.emptySet())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(savedJob -> savedJob.getJob().getId())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> excludedJobIds = new HashSet<>(appliedJobIds);
+        excludedJobIds.addAll(savedJobIds);
+
+        log.debug("User {} has {} excluded jobs", user.getEmail(), excludedJobIds.size());
+        return excludedJobIds;
+    }
+
+
+    private List<JobApplicationDto> mapToJobApplicationDto(List<JobApplication> jobApplications) {
         return jobApplications
                 .stream()
                 .map(application -> {
@@ -492,15 +701,5 @@ public class JobServiceImpl implements JobService {
                     }
                 })
                 .toList();
-    }
-
-    @Override
-    public List<JobDto> getMySavedJobs() {
-        return List.of();
-    }
-
-    @Override
-    public List<JobDto> recommendJobs() {
-        return List.of();
     }
 }

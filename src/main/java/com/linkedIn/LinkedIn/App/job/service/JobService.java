@@ -6,7 +6,6 @@ import com.linkedIn.LinkedIn.App.job.dto.records.JobInput;
 import com.linkedIn.LinkedIn.App.job.dto.records.JobUpdate;
 import com.linkedIn.LinkedIn.App.job.entity.Job;
 import com.linkedIn.LinkedIn.App.job.entity.JobApplication;
-import com.linkedIn.LinkedIn.App.user.entity.User;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public interface JobService {
 
     List<JobDto> mapToJobDto(List<Job> jobs);
 
-    void applyForJob(Long jobId);
+    void applyForJob(Long jobId, String resumeUrl);
 
     void withdrawApplication(Long jobId);
 
@@ -54,8 +53,6 @@ public interface JobService {
     List<JobApplication> getApplicationsOfJob(Long jobId);
 
     List<JobApplication> getApplicationsOfJobByStatus(Long jobId, String status);
-
-    List<JobApplicationDto> mapToJobApplicationDto(List<JobApplication> jobApplications);
 
     List<JobDto> getMySavedJobs();
 

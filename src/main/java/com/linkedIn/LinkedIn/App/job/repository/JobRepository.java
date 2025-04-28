@@ -4,9 +4,12 @@ import com.linkedIn.LinkedIn.App.job.entity.Job;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobStatus;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
@@ -27,4 +30,15 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     List<Job> findByTitleContainingIgnoreCaseAndLocationIgnoreCaseAndStatus(
             String title, String location, JobStatus status
     );
+
+    @Query("""
+    SELECT j FROM Job j 
+    WHERE (j.companyName IN :companies OR j.location = :location)
+    AND j.id NOT IN :excludedJobIds
+    ORDER BY j.createdAt DESC
+    """)
+    List<Job> findRecommendedJobs(@Param("companies") Set<String> companies,
+                                  @Param("location") String location,
+                                  @Param("excludedJobIds") Set<Long> excludedJobIds);
+
 }
