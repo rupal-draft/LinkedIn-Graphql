@@ -1,0 +1,121 @@
+extend type Query {
+    getJobById(jobId: ID!): JobResponseDto
+    getMyApplications: JobApplicationsResponse
+    getApplicationsOfJob(jobId: ID!): JobApplicationsResponse
+    getApplicationsOfJobByStatus(jobId: ID!, status: String!): JobApplicationsResponse
+    getApplicationById(applicationId: ID!): SingleJobApplicationResponse
+    getMySavedJobs: JobsResponseDto
+    getJobsByStatus(status: String!): JobsResponseDto
+    recommendedJobs: JobsResponseDto
+    getJobsByTitle(title: String!): JobsResponseDto
+    getJobsByTitleAndStatus(title: String!, status: String!): JobsResponseDto
+    getJobsByTitleAndLocation(title: String!, location: String!): JobsResponseDto
+    getJobsByTitleAndLocationAndStatus(title: String!, location: String!, status: String!): JobsResponseDto
+    getJobsByLocation(location: String!): JobsResponseDto
+    getJobsByLocationAndStatus(location: String!, status: String!): JobsResponseDto
+    getJobsByUser(postedBy: ID!): JobsResponseDto
+    getAllJobs: JobsResponseDto
+}
+
+extend type Mutation {
+    createJob(jobInput: JobInput!): JobResponseDto
+    updateJob(jobId: ID!, jobUpdate: JobUpdate!): Response
+    deleteJob(jobId: ID!): Response
+    saveJob(jobId: ID!): Response
+    unsaveJob(jobId: ID!): Response
+    applyForJob(jobId: ID!, resumeUrl: String!): Response
+    withdrawApplication(jobId: ID!): Response
+}
+
+input JobInput {
+    title: String!
+    description: String!
+    location: String!
+    companyName: String!
+    jobType: String!
+    salary: Float!
+    experience: Float!
+    status: String!
+}
+
+input JobUpdate {
+    title: String
+    description: String
+    location: String
+    companyName: String
+    jobType: String
+    salary: Float
+    experience: Float
+    status: String
+}
+
+type JobDto {
+    id: ID
+    title: String
+    description: String
+    location: String
+    salary: Float
+    jobType: JobType
+    companyName: String
+    status: JobStatus
+    postedBy: User
+}
+
+type JobApplicationDto {
+    applicationId: ID
+    jobId: ID
+    jobTitle: String
+    companyName: String
+    location: String
+    salary: Float
+    status: ApplicationStatus
+    appliedAt: String
+}
+
+type JobResponseDto {
+    message: String
+    success: Boolean
+    job: JobDto
+}
+
+type JobsResponseDto {
+    message: String
+    success: Boolean
+    totalJobs: Int
+    jobs: [JobDto]
+}
+
+type JobApplicationsResponse {
+    message: String
+    success: Boolean
+    totalApplications: Int
+    applications: [JobApplicationDto]
+}
+
+type SingleJobApplicationResponse {
+    message: String
+    success: Boolean
+    jobApplication: JobApplicationDto
+}
+
+enum JobStatus {
+    OPEN,
+    CLOSED,
+    FILLED
+}
+
+enum JobType {
+    FULL_TIME,
+    PART_TIME,
+    CONTRACT,
+    REMOTE,
+    INTERNSHIP
+}
+
+enum ApplicationStatus {
+    APPLIED,
+    REJECTED,
+    WITHDRAWN,
+    INTERVIEW,
+    OFFER
+}
