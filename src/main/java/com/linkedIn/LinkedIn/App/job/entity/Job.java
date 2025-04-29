@@ -41,6 +41,9 @@ public class Job extends Auditable {
     @Column(nullable = false)
     private Double salary;
 
+    @Column(nullable = false)
+    private Double experience;
+
     @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private JobType jobType;

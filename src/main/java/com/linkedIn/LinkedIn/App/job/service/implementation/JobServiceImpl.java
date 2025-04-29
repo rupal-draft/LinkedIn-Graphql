@@ -355,27 +355,6 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobDto> mapToJobDto(List<Job> jobs) {
-        if (jobs == null || jobs.isEmpty()) {
-            log.warn("No jobs to map, returning empty list");
-            return Collections.emptyList();
-        }
-
-        try {
-            return jobs.stream()
-                    .map(job -> modelMapper.map(job, JobDto.class))
-                    .toList();
-        } catch (MappingException e) {
-            log.error("Error occurred while mapping jobs to DTOs: {}", e.getLocalizedMessage(), e);
-            throw new RuntimeException("Failed to map job entities to DTOs", e);
-        } catch (Exception e) {
-            log.error("Unexpected error during job mapping: {}", e.getLocalizedMessage(), e);
-            throw new RuntimeException("Unexpected error while mapping jobs", e);
-        }
-    }
-
-
-    @Override
     @Transactional
     @CacheEvict(value = "applications", allEntries = true)
     public void applyForJob(Long jobId, String resumeUrl) {
@@ -521,7 +500,7 @@ public class JobServiceImpl implements JobService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "applications", key = "'jobId:' + #jobId + ',status:' + #status")
-    public List<JobApplication> getApplicationsOfJobByStatus(Long jobId, String status) {
+    public List<JobApplicationDto> getApplicationsOfJobByStatus(Long jobId, String status) {
         log.info("Fetching applications for job ID: {} with status: {}", jobId, status);
 
         try {
@@ -544,7 +523,7 @@ public class JobServiceImpl implements JobService {
             }
 
             log.info("Successfully fetched {} applications with status {} for job ID: {}", applications.size(), status, jobId);
-            return applications;
+            return mapToJobApplicationDto(applications);
         } catch (BadRequestException | ResourceNotFoundException ex) {
             log.error("Known error while fetching applications: {}", ex.getMessage(), ex);
             throw ex;
@@ -557,7 +536,7 @@ public class JobServiceImpl implements JobService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "applications", key = "'jobId:' + #jobId")
-    public List<JobApplication> getApplicationsOfJob(Long jobId) {
+    public List<JobApplicationDto> getApplicationsOfJob(Long jobId) {
         log.info("Fetching all applications for job ID: {}", jobId);
 
         try {
@@ -572,10 +551,40 @@ public class JobServiceImpl implements JobService {
             }
 
             log.info("Successfully fetched {} applications for job ID: {}", applications.size(), jobId);
-            return applications;
+            return mapToJobApplicationDto(applications);
+        } catch (MappingException ex) {
+            log.error("Error mapping JobApplication entity to DTO for job ID {}: {}", jobId, ex.getLocalizedMessage(), ex);
+            throw ex;
+        } catch (ResourceNotFoundException ex) {
+            log.error("Known error while fetching applications for job ID {}: {}", jobId, ex.getMessage(), ex);
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching applications for job ID {}: {}", jobId, ex.getMessage(), ex);
             throw new RuntimeException("Unable to fetch applications at the moment. Please try again later.");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "application", key = "#applicationId")
+    public JobApplicationDto getJobApplicationById(Long applicationId) {
+        log.info("Fetching application with ID: {}", applicationId);
+
+        try {
+            JobApplication application = jobApplicationRepository.findById(applicationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + applicationId));
+
+            log.info("Successfully fetched application with ID: {}", applicationId);
+            return modelMapper.map(application, JobApplicationDto.class);
+        } catch (MappingException ex) {
+            log.error("Error mapping JobApplication entity to DTO for application ID {}: {}", applicationId, ex.getLocalizedMessage(), ex);
+            throw ex;
+        } catch (ResourceNotFoundException ex) {
+            log.error("Known error while fetching application with ID {}: {}", applicationId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching application with ID {}: {}", applicationId, ex.getMessage(), ex);
+            throw new RuntimeException("Unable to fetch application at the moment. Please try again later.");
         }
     }
 
@@ -640,13 +649,20 @@ public class JobServiceImpl implements JobService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        double totalYears = Optional.ofNullable(currentUser.getExperienceList())
+                .orElse(List.of())
+                .stream()
+                .mapToDouble(Experience::getYearsOfExperience)
+                .sum();
+
         String userLocation = Optional.ofNullable(currentUser.getLocation()).orElse("");
 
         Set<Long> excludedJobIds = getExcludedJobIds(currentUser);
 
         List<Job> recommendedJobs = jobRepository.findRecommendedJobs(
-                userCompanies.isEmpty() ? Set.of("") : userCompanies,
+                userCompanies.isEmpty() ? Set.of("-") : userCompanies,
                 userLocation,
+                totalYears,
                 excludedJobIds.isEmpty() ? Set.of(-1L) : excludedJobIds
         );
 
@@ -701,5 +717,24 @@ public class JobServiceImpl implements JobService {
                     }
                 })
                 .toList();
+    }
+
+    private List<JobDto> mapToJobDto(List<Job> jobs) {
+        if (jobs == null || jobs.isEmpty()) {
+            log.warn("No jobs to map, returning empty list");
+            return Collections.emptyList();
+        }
+
+        try {
+            return jobs.stream()
+                    .map(job -> modelMapper.map(job, JobDto.class))
+                    .toList();
+        } catch (MappingException e) {
+            log.error("Error occurred while mapping jobs to DTOs: {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException("Failed to map job entities to DTOs", e);
+        } catch (Exception e) {
+            log.error("Unexpected error during job mapping: {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException("Unexpected error while mapping jobs", e);
+        }
     }
 }

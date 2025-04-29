@@ -29,6 +29,9 @@ public record JobInput(
         @Size(min = 0, message = "Salary cannot be negative")
         Double salary,
 
+        @NotNull(message = "Experience is required")
+        Double experience,
+
         @NotNull(message = "Job status is required")
         String status
 ) {

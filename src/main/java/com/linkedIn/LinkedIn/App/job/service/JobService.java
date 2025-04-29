@@ -38,8 +38,6 @@ public interface JobService {
 
     List<JobDto> getJobsByPostedBy(Long postedBy);
 
-    List<JobDto> mapToJobDto(List<Job> jobs);
-
     void applyForJob(Long jobId, String resumeUrl);
 
     void withdrawApplication(Long jobId);
@@ -50,9 +48,11 @@ public interface JobService {
 
     List<JobApplicationDto> getMyApplications();
 
-    List<JobApplication> getApplicationsOfJob(Long jobId);
+    List<JobApplicationDto> getApplicationsOfJob(Long jobId);
 
-    List<JobApplication> getApplicationsOfJobByStatus(Long jobId, String status);
+    List<JobApplicationDto> getApplicationsOfJobByStatus(Long jobId, String status);
+
+    JobApplicationDto getJobApplicationById(Long applicationId);
 
     List<JobDto> getMySavedJobs();
 

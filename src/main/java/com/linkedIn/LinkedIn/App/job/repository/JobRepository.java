@@ -33,12 +33,13 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     @Query("""
     SELECT j FROM Job j 
-    WHERE (j.companyName IN :companies OR j.location = :location)
+    WHERE (LOWER(j.companyName) IN :companies OR LOWER(j.location) = :location OR j.experience >= :experience)
     AND j.id NOT IN :excludedJobIds
     ORDER BY j.createdAt DESC
     """)
     List<Job> findRecommendedJobs(@Param("companies") Set<String> companies,
                                   @Param("location") String location,
+                                  @Param("experience") double experience,
                                   @Param("excludedJobIds") Set<Long> excludedJobIds);
 
 }

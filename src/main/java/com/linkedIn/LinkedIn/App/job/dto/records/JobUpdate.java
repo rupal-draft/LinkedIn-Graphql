@@ -21,6 +21,8 @@ public record JobUpdate(
         @Size(min = 0, message = "Salary cannot be negative")
         Double salary,
 
+        Double experience,
+
         String status
 ) {
 }
