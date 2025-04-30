@@ -20,6 +20,7 @@ import com.linkedIn.LinkedIn.App.job.repository.SavedJobRepository;
 import com.linkedIn.LinkedIn.App.job.service.JobService;
 import com.linkedIn.LinkedIn.App.user.entity.Experience;
 import com.linkedIn.LinkedIn.App.user.entity.User;
+import com.linkedIn.LinkedIn.App.user.entity.enums.Roles;
 import com.linkedIn.LinkedIn.App.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,14 @@ public class JobServiceImpl implements JobService {
 
         User currentUser = SecurityUtils.getLoggedInUser();
 
+        if (!(currentUser.getRole().equals(Roles.ADMIN) ||
+                currentUser.getRole().equals(Roles.RECRUITER) ||
+                currentUser.getRole().equals(Roles.HR))) {
+
+            log.error("User {} is not authorized to create job", currentUser.getId());
+            throw new AccessDeniedException("You are not authorized to create job");
+        }
+
         try {
             Job job = modelMapper.map(jobInput, Job.class);
             job.setPostedBy(currentUser);
@@ -89,6 +98,14 @@ public class JobServiceImpl implements JobService {
         }
 
         User currentUser = SecurityUtils.getLoggedInUser();
+
+        if (!(currentUser.getRole().equals(Roles.ADMIN) ||
+                currentUser.getRole().equals(Roles.RECRUITER) ||
+                currentUser.getRole().equals(Roles.HR))) {
+
+            log.error("User {} is not authorized to update job", currentUser.getId());
+            throw new AccessDeniedException("You are not authorized to update job");
+        }
 
         try {
             Job existingJob = jobRepository.findById(jobId)
@@ -131,6 +148,14 @@ public class JobServiceImpl implements JobService {
 
         try {
             User currentUser = SecurityUtils.getLoggedInUser();
+
+            if (!(currentUser.getRole().equals(Roles.ADMIN) ||
+                    currentUser.getRole().equals(Roles.RECRUITER) ||
+                    currentUser.getRole().equals(Roles.HR))) {
+
+                log.error("User {} is not authorized to delete job", currentUser.getId());
+                throw new AccessDeniedException("You are not authorized to delete job");
+            }
 
             Job job = jobRepository.findById(jobId)
                     .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));

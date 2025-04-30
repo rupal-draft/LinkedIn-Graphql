@@ -13,7 +13,7 @@ import lombok.*;
         },
         indexes = {
                 @Index(name = "idx_job_id", columnList = "job_id"),
-                @Index(name = "idx_user_id", columnList = "user_id"),
+                @Index(name = "idx_application_user_id", columnList = "user_id"),
                 @Index(name = "idx_application_status", columnList = "application_status")
         }
 )
