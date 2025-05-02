@@ -1,0 +1,25 @@
+extend type Query {
+    getMyNotifications: NotificationsResponse
+}
+
+type NotificationsResponse {
+    message: String
+    success: Boolean
+    totalNotifications: Int
+    notifications: [NotificationDto]
+}
+
+type NotificationDto {
+    id: ID
+    title: String
+    message: String
+    type: NotificationType
+    receiver: User
+}
+
+enum NotificationType {
+    JOB,
+    CONNECTION,
+    POST,
+    PROFILE
+}
