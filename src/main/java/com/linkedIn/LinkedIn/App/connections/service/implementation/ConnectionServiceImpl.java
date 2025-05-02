@@ -8,6 +8,8 @@ import com.linkedIn.LinkedIn.App.connections.entity.ConnectionRequest;
 import com.linkedIn.LinkedIn.App.connections.entity.enums.RequestStatus;
 import com.linkedIn.LinkedIn.App.connections.repository.ConnectionRequestRepository;
 import com.linkedIn.LinkedIn.App.connections.service.ConnectionService;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.repository.UserRepository;
@@ -32,6 +34,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     private final ConnectionRequestRepository connectionRequestRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -69,6 +72,13 @@ public class ConnectionServiceImpl implements ConnectionService {
                     .status(RequestStatus.PENDING)
                     .build();
             connectionRequestRepository.save(request);
+
+            log.info("Sending notification to user {}", receiverId);
+            notificationService.createNotification("New connection request",
+                    "You have a new connection request from " + sender.getName(),
+                    receiver,
+                    NotificationType.CONNECTION);
+
             log.info("Saved connection request {}", request);
         } catch (ResourceNotFoundException e) {
             log.error("Error sending connection request: {}", e.getMessage());
@@ -109,6 +119,16 @@ public class ConnectionServiceImpl implements ConnectionService {
             userRepository.save(receiver);
             userRepository.save(sender);
             connectionRequestRepository.updateConnectionRequestStatus(requestId, RequestStatus.ACCEPTED);
+
+            log.info("Sending notification to user {}", sender.getId());
+            notificationService.createNotification(
+                    "Connection request accepted",
+                    receiver.getName() + " accepted your connection request",
+                    sender,
+                    NotificationType.CONNECTION
+            );
+
+            log.info("Successfully accepted connection request with id {}", requestId);
 
         } catch (ResourceNotFoundException e) {
             log.error("Error accepting connection request: {}", e.getMessage());
@@ -255,8 +275,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
     }
 
-    @Override
-    public ConnectionRequestDto mapToConnectionRequestDto(ConnectionRequest request) {
+    private ConnectionRequestDto mapToConnectionRequestDto(ConnectionRequest request) {
         return ConnectionRequestDto.builder()
                 .id(request.getId())
                 .senderId(request.getSender().getId())

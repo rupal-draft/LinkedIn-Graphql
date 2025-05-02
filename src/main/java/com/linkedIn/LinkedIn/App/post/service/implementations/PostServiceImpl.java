@@ -3,6 +3,10 @@ package com.linkedIn.LinkedIn.App.post.service.implementations;
 import com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils;
 import com.linkedIn.LinkedIn.App.common.exceptions.BadRequestException;
 import com.linkedIn.LinkedIn.App.common.exceptions.ServiceUnavailableException;
+import com.linkedIn.LinkedIn.App.connections.repository.ConnectionRequestRepository;
+import com.linkedIn.LinkedIn.App.connections.service.ConnectionService;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.post.dto.DetailedPostResponse;
 import com.linkedIn.LinkedIn.App.post.dto.PostResponse;
 import com.linkedIn.LinkedIn.App.post.dto.records.PostInput;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +40,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -48,6 +54,16 @@ public class PostServiceImpl implements PostService {
             post.setUser(user);
 
             Post savedPost = postRepository.save(post);
+
+            Set<User> connections = user.getConnections();
+            log.info("Sending notifications to {} connections", connections.size());
+            connections.forEach(connection -> {
+                notificationService.createNotification(
+                        "New post from " + user.getName(),
+                        "Check out " + savedPost.getContent(),
+                        connection,
+                        NotificationType.POST);
+            });
 
             return modelMapper.map(savedPost, PostResponse.class);
 

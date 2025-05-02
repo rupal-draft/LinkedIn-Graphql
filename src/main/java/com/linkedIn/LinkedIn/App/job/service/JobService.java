@@ -4,8 +4,6 @@ import com.linkedIn.LinkedIn.App.job.dto.JobApplicationDto;
 import com.linkedIn.LinkedIn.App.job.dto.JobDto;
 import com.linkedIn.LinkedIn.App.job.dto.records.JobInput;
 import com.linkedIn.LinkedIn.App.job.dto.records.JobUpdate;
-import com.linkedIn.LinkedIn.App.job.entity.Job;
-import com.linkedIn.LinkedIn.App.job.entity.JobApplication;
 import jakarta.validation.Valid;
 
 import java.util.List;

@@ -2,6 +2,8 @@ package com.linkedIn.LinkedIn.App.post.service.implementations;
 
 import com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils;
 import com.linkedIn.LinkedIn.App.common.exceptions.ResourceNotFoundException;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.post.dto.LikeDto;
 import com.linkedIn.LinkedIn.App.post.entity.Like;
 import com.linkedIn.LinkedIn.App.post.entity.Post;
@@ -30,6 +32,7 @@ public class LikeServiceImpl implements LikeService {
     private final ModelMapper modelMapper;
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -61,6 +64,9 @@ public class LikeServiceImpl implements LikeService {
 
             post.getLikes().add(like);
             likeRepository.save(like);
+
+            log.info("Creating notification for post {}", postId);
+            notificationService.createNotification("New Like", user.getName() + " liked your post", post.getUser(), NotificationType.POST);
 
             log.info("User {} liked post {}", user.getId(), postId);
 

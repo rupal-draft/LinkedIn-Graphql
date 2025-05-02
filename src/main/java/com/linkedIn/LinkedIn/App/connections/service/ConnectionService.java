@@ -21,6 +21,4 @@ public interface ConnectionService {
     List<ConnectionRequestDto> getPendingRequests();
 
     List<ConnectionRequestDto> getSentRequests();
-
-    ConnectionRequestDto mapToConnectionRequestDto(ConnectionRequest connectionRequest);
 }

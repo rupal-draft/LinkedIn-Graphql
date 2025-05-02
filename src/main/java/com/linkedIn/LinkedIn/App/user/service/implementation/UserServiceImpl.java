@@ -4,6 +4,8 @@ import com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils;
 import com.linkedIn.LinkedIn.App.common.exceptions.IllegalState;
 import com.linkedIn.LinkedIn.App.common.exceptions.ResourceNotFoundException;
 import com.linkedIn.LinkedIn.App.common.exceptions.ServiceUnavailableException;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.user.dto.DetailedUserDto;
 import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 import com.linkedIn.LinkedIn.App.user.dto.record.EducationInput;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final EducationRepository educationRepository;
     private final ExperienceRepository experienceRepository;
+    private final NotificationService notificationService;
 
     @Override
     public User getUserFromId(Long userId) {
@@ -228,10 +231,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Cacheable(value = "user", key = "#userId")
     public DetailedUserDto getDetailedUser(Long userId) {
+        User currentUser = SecurityUtils.getLoggedInUser();
         try {
             User user = userRepository
                     .findById(userId)
                     .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+            notificationService.createNotification("Viewed profile", currentUser.getName()+" viewed your profile", user, NotificationType.PROFILE);
             return modelMapper.map(user, DetailedUserDto.class);
         } catch (ResourceNotFoundException e) {
             log.error(e.getMessage());

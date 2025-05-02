@@ -2,6 +2,8 @@ package com.linkedIn.LinkedIn.App.post.service.implementations;
 
 import com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils;
 import com.linkedIn.LinkedIn.App.common.exceptions.ResourceNotFoundException;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.post.dto.CommentDto;
 import com.linkedIn.LinkedIn.App.post.entity.Comment;
 import com.linkedIn.LinkedIn.App.post.entity.Post;
@@ -30,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -53,6 +56,9 @@ public class CommentServiceImpl implements CommentService {
                     .build();
 
             commentRepository.save(comment);
+
+            log.info("Adding notification for user {} on post {}", post.getUser().getId(), postId);
+            notificationService.createNotification("New comment", content, post.getUser(), NotificationType.POST);
 
             log.info("Comment added successfully by user {} on post {}", user.getId(), postId);
         } catch (Exception e) {

@@ -18,6 +18,8 @@ import com.linkedIn.LinkedIn.App.job.repository.JobApplicationRepository;
 import com.linkedIn.LinkedIn.App.job.repository.JobRepository;
 import com.linkedIn.LinkedIn.App.job.repository.SavedJobRepository;
 import com.linkedIn.LinkedIn.App.job.service.JobService;
+import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
+import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.user.entity.Experience;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.entity.enums.Roles;
@@ -48,6 +50,7 @@ public class JobServiceImpl implements JobService {
     private final JobApplicationRepository jobApplicationRepository;
     private final SavedJobRepository savedJobRepository;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -77,6 +80,12 @@ public class JobServiceImpl implements JobService {
 
             Job savedJob = jobRepository.save(job);
             log.info("Successfully created job with ID: {}", savedJob.getId());
+
+            Set<User> connections = currentUser.getConnections();
+            connections.forEach(user -> notificationService.createNotification("New Job!",
+                    "A new job has been created by " + currentUser.getName() + ". Check it out!",
+                    user,
+                    NotificationType.JOB));
 
             return modelMapper.map(savedJob, JobDto.class);
 
@@ -404,6 +413,10 @@ public class JobServiceImpl implements JobService {
                     .build();
 
             jobApplicationRepository.save(application);
+            notificationService.createNotification("New Job Application!",
+                    "You have a new job application from " + currentUser.getName(),
+                    job.getPostedBy(),
+                    NotificationType.JOB);
             log.info("User [{}] successfully applied for job [{}]", currentUser.getId(), jobId);
         } catch (ResourceNotFoundException | BadRequestException ex) {
             log.error("Known error during job application: {}", ex.getMessage(), ex);
