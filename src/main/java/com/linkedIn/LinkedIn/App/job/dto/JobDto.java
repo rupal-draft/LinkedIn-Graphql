@@ -2,6 +2,7 @@ package com.linkedIn.LinkedIn.App.job.dto;
 
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobStatus;
 import com.linkedIn.LinkedIn.App.job.entity.enums.JobType;
+import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,5 +29,5 @@ public class JobDto {
 
     private JobStatus status;
 
-    private User postedBy;
+    private UserDto postedBy;
 }

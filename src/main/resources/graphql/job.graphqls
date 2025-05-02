@@ -13,7 +13,7 @@ extend type Query {
     getJobsByTitleAndLocationAndStatus(title: String!, location: String!, status: String!): JobsResponseDto
     getJobsByLocation(location: String!): JobsResponseDto
     getJobsByLocationAndStatus(location: String!, status: String!): JobsResponseDto
-    getJobsByUser(postedBy: ID!): JobsResponseDto
+    getJobsByUser(email: String!): JobsResponseDto
     getAllJobs: JobsResponseDto
 }
 
@@ -62,14 +62,12 @@ type JobDto {
 }
 
 type JobApplicationDto {
-    applicationId: ID
-    jobId: ID
-    jobTitle: String
-    companyName: String
-    location: String
-    salary: Float
-    status: ApplicationStatus
-    appliedAt: String
+    id: ID
+    job: JobDto
+    user: User
+    applicationStatus: ApplicationStatus
+    resumeUrl: String
+    createdAt: String
 }
 
 type JobResponseDto {

@@ -149,8 +149,8 @@ public class JobResolver {
     }
 
     @QueryMapping
-    public JobsResponseDto getJobsByUser(@Argument("postedBy") Long postedBy) {
-        List<JobDto> jobDtos = jobService.getJobsByPostedBy(postedBy);
+    public JobsResponseDto getJobsByUser(@Argument("email") String email) {
+        List<JobDto> jobDtos = jobService.getJobsByPostedBy(email);
         return new JobsResponseDto("Jobs fetched successfully", true, jobDtos.size(), jobDtos);
     }
 

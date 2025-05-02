@@ -41,6 +41,6 @@ public class JobApplication extends Auditable {
 
     @Column(nullable = false, name = "application_status")
     @Enumerated(EnumType.STRING)
-    private ApplicationStatus applicationStatus;
+    private ApplicationStatus applicationStatus = ApplicationStatus.APPLIED;
 }
 

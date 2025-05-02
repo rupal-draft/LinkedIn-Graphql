@@ -36,7 +36,7 @@ public interface JobService {
 
     JobDto getJobById(Long jobId);
 
-    List<JobDto> getJobsByPostedBy(Long postedBy);
+    List<JobDto> getJobsByPostedBy(String email);
 
     void applyForJob(Long jobId, String resumeUrl);
 

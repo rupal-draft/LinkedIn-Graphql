@@ -359,11 +359,11 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "jobs", key = "#postedBy")
-    public List<JobDto> getJobsByPostedBy(Long postedBy) {
-        log.info("Fetching user with id : {}",postedBy);
+    @Cacheable(value = "jobs", key = "#email")
+    public List<JobDto> getJobsByPostedBy(String email) {
+        log.info("Fetching user with email : {}",email);
         User user = userRepository
-                .findById(postedBy).orElseThrow(() -> new ResourceNotFoundException("No user found with this id : " + postedBy));
+                .findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("No user found with this email : " + email));
 
         log.info("Fetching all jobs posted by {}",user.getName());
 

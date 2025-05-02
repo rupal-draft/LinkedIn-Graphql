@@ -1,5 +1,6 @@
 package com.linkedIn.LinkedIn.App.job.dto.records;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,7 +27,7 @@ public record JobInput(
         String jobType,
 
         @NotNull(message = "Salary is required")
-        @Size(min = 0, message = "Salary cannot be negative")
+        @DecimalMin(value = "0.0", inclusive = true, message = "Salary cannot be negative")
         Double salary,
 
         @NotNull(message = "Experience is required")

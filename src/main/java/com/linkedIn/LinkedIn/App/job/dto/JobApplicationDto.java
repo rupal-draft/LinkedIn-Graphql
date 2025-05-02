@@ -1,6 +1,7 @@
 package com.linkedIn.LinkedIn.App.job.dto;
 
 import com.linkedIn.LinkedIn.App.job.entity.enums.ApplicationStatus;
+import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,12 +15,10 @@ import java.time.LocalDateTime;
 @Builder
 public class JobApplicationDto {
 
-    private Long applicationId;
-    private Long jobId;
-    private String jobTitle;
-    private String companyName;
-    private String location;
-    private Double salary;
-    private ApplicationStatus status;
-    private LocalDateTime appliedAt;
+    private Long id;
+    private JobDto job;
+    private UserDto user;
+    private ApplicationStatus applicationStatus;
+    private String resumeUrl;
+    private LocalDateTime createdAt;
 }
