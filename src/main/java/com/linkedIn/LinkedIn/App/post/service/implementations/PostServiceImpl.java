@@ -2,9 +2,8 @@ package com.linkedIn.LinkedIn.App.post.service.implementations;
 
 import com.linkedIn.LinkedIn.App.auth.utils.SecurityUtils;
 import com.linkedIn.LinkedIn.App.common.exceptions.BadRequestException;
+import com.linkedIn.LinkedIn.App.common.exceptions.ResourceNotFoundException;
 import com.linkedIn.LinkedIn.App.common.exceptions.ServiceUnavailableException;
-import com.linkedIn.LinkedIn.App.connections.repository.ConnectionRequestRepository;
-import com.linkedIn.LinkedIn.App.connections.service.ConnectionService;
 import com.linkedIn.LinkedIn.App.notification.entity.enums.NotificationType;
 import com.linkedIn.LinkedIn.App.notification.service.NotificationService;
 import com.linkedIn.LinkedIn.App.post.dto.DetailedPostResponse;
@@ -36,8 +35,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 public class PostServiceImpl implements PostService {
-    private final UserRepository userRepository;
 
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
     private final NotificationService notificationService;
@@ -47,7 +46,12 @@ public class PostServiceImpl implements PostService {
     @CacheEvict(value = "posts", allEntries = true)
     public PostResponse createPost(PostInput postInput) {
         try {
-            User user = SecurityUtils.getLoggedInUser();
+            Long userId = SecurityUtils
+                    .getLoggedInUser()
+                    .getId();
+            User user = userRepository.findByIdWithConnections(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
             log.info("Creating post for user: {}", user.getName());
             Post post = modelMapper.map(postInput, Post.class);
             post.setCategory(Category.valueOf(postInput.category().toUpperCase()));

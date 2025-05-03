@@ -64,7 +64,11 @@ public class JobServiceImpl implements JobService {
             throw new IllegalArgumentException("Job details must not be null");
         }
 
-        User currentUser = SecurityUtils.getLoggedInUser();
+        Long userId = SecurityUtils
+                .getLoggedInUser()
+                .getId();
+        User currentUser = userRepository.findByIdWithConnections(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!(currentUser.getRole().equals(Roles.ADMIN) ||
                 currentUser.getRole().equals(Roles.RECRUITER) ||

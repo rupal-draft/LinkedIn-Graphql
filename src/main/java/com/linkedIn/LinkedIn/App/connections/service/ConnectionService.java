@@ -1,7 +1,6 @@
 package com.linkedIn.LinkedIn.App.connections.service;
 
 import com.linkedIn.LinkedIn.App.connections.dto.ConnectionRequestDto;
-import com.linkedIn.LinkedIn.App.connections.entity.ConnectionRequest;
 import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 
 import java.util.List;
