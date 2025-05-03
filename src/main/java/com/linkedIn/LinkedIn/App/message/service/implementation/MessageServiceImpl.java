@@ -6,7 +6,6 @@ import com.linkedIn.LinkedIn.App.common.exceptions.ResourceNotFoundException;
 import com.linkedIn.LinkedIn.App.common.exceptions.ServiceUnavailableException;
 import com.linkedIn.LinkedIn.App.message.dto.ChatSessionDto;
 import com.linkedIn.LinkedIn.App.message.dto.MessageDto;
-import com.linkedIn.LinkedIn.App.message.dto.MessagesResponse;
 import com.linkedIn.LinkedIn.App.message.dto.records.SendMessageInput;
 import com.linkedIn.LinkedIn.App.message.entity.ChatSession;
 import com.linkedIn.LinkedIn.App.message.entity.Message;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MessageServiceImpl implements MessageService {
 
-    private final Map<Long, Sinks.Many<MessagesResponse>> sessionSinkMap = new ConcurrentHashMap<>();
+    private final Map<Long, Sinks.Many<MessageDto>> sessionSinkMap = new ConcurrentHashMap<>();
 
 
     private final MessageRepository messageRepository;
@@ -53,8 +52,17 @@ public class MessageServiceImpl implements MessageService {
         log.info("Creating or getting chat session with receiver ID: {}", receiverId);
         User currentUser = SecurityUtils.getLoggedInUser();
 
-        if (currentUser.getId().equals(receiverId)) {
-            throw new BadRequestException("You cannot create a chat session with yourself");
+        if (currentUser
+                .getConnections()
+                .stream()
+                .noneMatch(user -> user
+                        .getId()
+                        .equals(receiverId))) {
+            throw new BadRequestException("You both are not connected!");
+        }
+
+        if (!currentUser.getConnections().contains(receiverId)) {
+            throw new BadRequestException("You both are not connected!");
         }
 
         User receiver = userRepository.findById(receiverId)
@@ -89,7 +97,6 @@ public class MessageServiceImpl implements MessageService {
             throw new ServiceUnavailableException("Unable to start chat session at the moment. Try again later.");
         }
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -147,19 +154,9 @@ public class MessageServiceImpl implements MessageService {
 
             log.info("Message sent by user {} in session {}", sender.getId(), session.getId());
 
-            int totalMessages = messageRepository.countBySessionId(session.getId());
-            int unreadMessages = messageRepository.countBySessionIdAndSeenFalseAndSenderIdNot(
-                    session.getId(), sender.getId());
-
-            Sinks.Many<MessagesResponse> sink = sessionSinkMap.get(session.getId());
+            Sinks.Many<MessageDto> sink = sessionSinkMap.get(session.getId());
             if (sink != null) {
-                sink.tryEmitNext(new MessagesResponse(
-                        "New message",
-                        true,
-                        totalMessages,
-                        unreadMessages,
-                        List.of(messageDto)
-                ));
+                sink.tryEmitNext(messageDto);
                 log.info("Pushed message to subscribers of session {}", session.getId());
             }
 
@@ -244,17 +241,15 @@ public class MessageServiceImpl implements MessageService {
 
 
     @Override
-    public Flux<MessagesResponse> subscribeToMessages(Long sessionId) {
+    public Flux<MessageDto> subscribeToMessages(Long sessionId) {
         log.info("Subscribing to messages for session ID: {}", sessionId);
 
-        Sinks.Many<MessagesResponse> sink = sessionSinkMap.computeIfAbsent(
+        Sinks.Many<MessageDto> sink = sessionSinkMap.computeIfAbsent(
                 sessionId,
                 id -> Sinks.many().multicast().onBackpressureBuffer()
         );
 
         return sink.asFlux()
-                .doOnCancel(() -> {
-                    log.info("Subscription cancelled for session ID: {}", sessionId);
-                });
+                .doOnCancel(() -> log.info("Subscription cancelled for session ID: {}", sessionId));
     }
 }

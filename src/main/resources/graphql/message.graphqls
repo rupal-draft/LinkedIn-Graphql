@@ -1,0 +1,63 @@
+extend type Query {
+    getMyChatSessions: ChatSessionsResponse
+    getMessagesBySession(sessionId: ID!): MessagesResponse
+}
+
+extend type Mutation {
+    createOrGetChatSession(receiverId: ID!): SingleChatSessionResponse
+    sendMessage(input: SendMessageInput!): SingleMessageResponse
+    markMessagesAsSeen(sessionId: ID!): Response
+}
+
+type Subscription {
+    subscribeToMessages(sessionId: ID!): MessageDto
+}
+
+
+type ChatSessionsResponse {
+    message: String!
+    success: Boolean!
+    totalSessions: Int!
+    sessions: [ChatSessionDto!]!
+}
+
+type SingleChatSessionResponse {
+    message: String!
+    success: Boolean!
+    chatSession: ChatSessionDto!
+}
+
+type MessagesResponse {
+    message: String!
+    success: Boolean!
+    totalMessages: Int!
+    unreadMessages: Int!
+    messages: [MessageDto!]!
+}
+
+type SingleMessageResponse {
+    message: String!
+    success: Boolean!
+    messageDto: MessageDto!
+}
+
+input SendMessageInput {
+    sessionId: ID!
+    content: String!
+}
+
+type ChatSessionDto {
+    id: ID!
+    user1: User!
+    user2: User!
+    createdAt: String
+    updatedAt: String
+}
+
+type MessageDto {
+    id: ID!
+    content: String!
+    sentAt: String
+    seen: Boolean!
+    sender: User!
+}
