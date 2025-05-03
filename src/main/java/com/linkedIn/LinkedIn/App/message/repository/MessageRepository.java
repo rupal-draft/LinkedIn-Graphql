@@ -4,6 +4,7 @@ import com.linkedIn.LinkedIn.App.message.entity.ChatSession;
 import com.linkedIn.LinkedIn.App.message.entity.Message;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,6 +16,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findBySessionOrderBySentAtAsc(ChatSession session);
 
-    @Query("SELECT m FROM Message m WHERE m.session = :session AND m.seen = false AND m.sender <> :currentUser")
-    List<Message> findUnseenMessagesForUser(@Param("session") ChatSession session, @Param("currentUser") User currentUser);
+
+    @Modifying
+    @Query("UPDATE Message m SET m.seen = true WHERE m.session = :session AND m.sender.id <> :currentUserId AND m.seen = false")
+    int markMessagesAsSeen(@Param("session") ChatSession session, @Param("currentUserId") Long currentUserId);
+
+    int countBySessionId(Long id);
+
+    int countBySessionIdAndSeenFalseAndSenderIdNot(Long id, Long id1);
 }
