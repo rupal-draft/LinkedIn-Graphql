@@ -60,4 +60,5 @@ type MessageDto {
     sentAt: String
     seen: Boolean!
     sender: User!
+    receiver: User!
 }

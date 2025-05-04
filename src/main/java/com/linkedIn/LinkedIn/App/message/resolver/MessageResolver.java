@@ -51,8 +51,8 @@ public class MessageResolver {
 
     @MutationMapping
     public Response markMessagesAsSeen(@Argument Long sessionId) {
-        messageService.markMessagesAsSeen(sessionId);
-        return new Response("All messages are set to seen",true);
+        String response = messageService.markMessagesAsSeen(sessionId);
+        return new Response(response,true);
     }
 
     @SubscriptionMapping

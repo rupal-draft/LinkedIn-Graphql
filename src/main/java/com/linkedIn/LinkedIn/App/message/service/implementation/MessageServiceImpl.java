@@ -12,6 +12,7 @@ import com.linkedIn.LinkedIn.App.message.entity.Message;
 import com.linkedIn.LinkedIn.App.message.repository.ChatSessionRepository;
 import com.linkedIn.LinkedIn.App.message.repository.MessageRepository;
 import com.linkedIn.LinkedIn.App.message.service.MessageService;
+import com.linkedIn.LinkedIn.App.user.dto.UserDto;
 import com.linkedIn.LinkedIn.App.user.entity.User;
 import com.linkedIn.LinkedIn.App.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,10 @@ public class MessageServiceImpl implements MessageService {
     @Transactional
     public ChatSessionDto createOrGetChatSession(Long receiverId) {
         log.info("Creating or getting chat session with receiver ID: {}", receiverId);
-        User currentUser = SecurityUtils.getLoggedInUser();
+
+        Long userId = SecurityUtils.getLoggedInUser().getId();
+        User currentUser = userRepository.findByIdWithConnections(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Logged-in user not found"));
 
         if (currentUser
                 .getConnections()
@@ -58,10 +62,6 @@ public class MessageServiceImpl implements MessageService {
                 .noneMatch(user -> user
                         .getId()
                         .equals(receiverId))) {
-            throw new BadRequestException("You both are not connected!");
-        }
-
-        if (!currentUser.getConnections().contains(receiverId)) {
             throw new BadRequestException("You both are not connected!");
         }
 
@@ -150,7 +150,9 @@ public class MessageServiceImpl implements MessageService {
             Message savedMessage = messageRepository.save(message);
             log.info("User {} sent a message in session {}", sender.getId(), session.getId());
 
+            UserDto receiver = modelMapper.map(session.getUser2(),UserDto.class);
             MessageDto messageDto = modelMapper.map(savedMessage, MessageDto.class);
+            messageDto.setReceiver(receiver);
 
             log.info("Message sent by user {} in session {}", sender.getId(), session.getId());
 
@@ -195,11 +197,17 @@ public class MessageServiceImpl implements MessageService {
             throw new AccessDeniedException("You are not authorized to view messages of this session");
         }
 
+        UserDto receiver = modelMapper.map(session.getUser2(), UserDto.class);
+
         try {
             List<Message> messages = messageRepository.findBySessionOrderBySentAtAsc(session);
             log.info("Fetched {} messages for session {}", messages.size(), sessionId);
             return messages.stream()
-                    .map(msg -> modelMapper.map(msg, MessageDto.class))
+                    .map(msg -> {
+                        MessageDto messageDto = modelMapper.map(msg, MessageDto.class);
+                        messageDto.setReceiver(receiver);
+                        return messageDto;
+                    })
                     .collect(Collectors.toList());
 
         } catch (MappingException ex) {
@@ -214,7 +222,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
-    public void markMessagesAsSeen(Long sessionId) {
+    public String markMessagesAsSeen(Long sessionId) {
         User currentUser = SecurityUtils.getLoggedInUser();
 
         ChatSession session = chatSessionRepository.findById(sessionId)
@@ -229,16 +237,21 @@ public class MessageServiceImpl implements MessageService {
             throw new AccessDeniedException("You are not authorized to update seen status in this session");
         }
 
+        int matchingMessages = messageRepository.countUnseenMessagesFromOtherUser(session, currentUser.getId());
+        log.info("Found {} unseen messages in session {} sent by others (not user {}).", matchingMessages, session.getId(), currentUser.getId());
+
+
         try {
             int updatedCount = messageRepository.markMessagesAsSeen(session, currentUser.getId());
-            log.info("Marked {} messages as seen for session {} by user {}", updatedCount, sessionId, currentUser.getId());
+            String response = String.format("Successfully marked %d message(s) as seen in session ID %d by user ID %d.", updatedCount, sessionId, currentUser.getId());
+            log.info(response);
+            return response;
 
         } catch (Exception e) {
             log.error("Error marking messages as seen in session {}", sessionId, e);
             throw new ServiceUnavailableException("Could not mark messages as seen");
         }
     }
-
 
     @Override
     public Flux<MessageDto> subscribeToMessages(Long sessionId) {

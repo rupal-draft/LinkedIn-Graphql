@@ -17,7 +17,7 @@ public interface MessageService {
 
     List<MessageDto> getMessagesBySession(Long sessionId);
 
-    void markMessagesAsSeen(Long sessionId);
+    String markMessagesAsSeen(Long sessionId);
 
     Flux<MessageDto> subscribeToMessages(Long sessionId);
 }

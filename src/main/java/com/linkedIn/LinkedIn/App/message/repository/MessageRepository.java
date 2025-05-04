@@ -15,6 +15,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findBySessionOrderBySentAtAsc(ChatSession session);
 
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.session = :session AND m.sender.id <> :currentUserId AND m.seen = false")
+    int countUnseenMessagesFromOtherUser(@Param("session") ChatSession session, @Param("currentUserId") Long currentUserId);
+
 
     @Modifying
     @Query("UPDATE Message m SET m.seen = true WHERE m.session = :session AND m.sender.id <> :currentUserId AND m.seen = false")

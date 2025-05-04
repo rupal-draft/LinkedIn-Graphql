@@ -16,4 +16,5 @@ public class MessageDto {
     private LocalDateTime sentAt;
     private boolean seen;
     private UserDto sender;
+    private UserDto receiver;
 }
