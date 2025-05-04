@@ -7,9 +7,7 @@ import com.linkedIn.LinkedIn.App.message.service.MessageService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
 import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -53,10 +51,5 @@ public class MessageResolver {
     public Response markMessagesAsSeen(@Argument Long sessionId) {
         String response = messageService.markMessagesAsSeen(sessionId);
         return new Response(response,true);
-    }
-
-    @SubscriptionMapping
-    public Flux<MessageDto> subscribeToMessages(@Argument Long sessionId) {
-        return messageService.subscribeToMessages(sessionId);
     }
 }

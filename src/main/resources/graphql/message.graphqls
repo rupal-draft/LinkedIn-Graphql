@@ -9,11 +9,6 @@ extend type Mutation {
     markMessagesAsSeen(sessionId: ID!): Response
 }
 
-type Subscription {
-    subscribeToMessages(sessionId: ID!): MessageDto
-}
-
-
 type ChatSessionsResponse {
     message: String!
     success: Boolean!

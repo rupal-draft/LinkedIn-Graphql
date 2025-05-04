@@ -156,12 +156,6 @@ public class MessageServiceImpl implements MessageService {
 
             log.info("Message sent by user {} in session {}", sender.getId(), session.getId());
 
-            Sinks.Many<MessageDto> sink = sessionSinkMap.get(session.getId());
-            if (sink != null) {
-                sink.tryEmitNext(messageDto);
-                log.info("Pushed message to subscribers of session {}", session.getId());
-            }
-
             return messageDto;
 
         } catch (DataIntegrityViolationException ex) {
@@ -251,18 +245,5 @@ public class MessageServiceImpl implements MessageService {
             log.error("Error marking messages as seen in session {}", sessionId, e);
             throw new ServiceUnavailableException("Could not mark messages as seen");
         }
-    }
-
-    @Override
-    public Flux<MessageDto> subscribeToMessages(Long sessionId) {
-        log.info("Subscribing to messages for session ID: {}", sessionId);
-
-        Sinks.Many<MessageDto> sink = sessionSinkMap.computeIfAbsent(
-                sessionId,
-                id -> Sinks.many().multicast().onBackpressureBuffer()
-        );
-
-        return sink.asFlux()
-                .doOnCancel(() -> log.info("Subscription cancelled for session ID: {}", sessionId));
     }
 }
